@@ -7,16 +7,9 @@ using Windows.Win32.UI.Accessibility;
 using static Windows.Win32.PInvoke;
 
 // 输出表头。
+var editor = new ConsoleTableColumnEditor();
 var consoleWidth = Console.WindowWidth;
-var table = new ConsoleTableBuilder<Win32Window>(consoleWidth, new ConsoleTableColumnDefinition<Win32Window>[]
-{
-    (8, "time", _ => $"{DateTime.Now:hh:mm:ss}"),
-    (8, "hwnd", w => $"{w.Handle:X8}"),
-    (0.5, "title", w => w.Title),
-    (0.25, "class name", w => w.ClassName),
-    (6, "pid", w => $"{w.ProcessId}"),
-    (0.25, "process name", w => $"{w.ProcessName}"),
-});
+var table = editor.CreateTableBuilder();
 Console.WriteLine(table.BuildHeaderRows());
 
 // 监听系统的前台窗口变化。
