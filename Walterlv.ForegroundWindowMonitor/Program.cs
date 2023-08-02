@@ -1,8 +1,12 @@
-﻿using Walterlv.ForegroundWindowMonitor;
+﻿using System.Text;
+
+using Walterlv.ForegroundWindowMonitor;
 
 using Windows.Win32.Foundation;
 
 using static Windows.Win32.PInvoke;
+
+Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 var table = new TableBuilder(Console.WindowWidth, new TableColumnDefinition[]
 {

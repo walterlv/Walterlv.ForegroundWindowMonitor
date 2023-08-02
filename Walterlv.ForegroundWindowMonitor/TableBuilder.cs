@@ -80,15 +80,13 @@ public class TableBuilder
         {
             var width = _columnWidths[i];
             var value = valueFormatters[i](@object);
-            // 如果 value 长度超过 width + 1 - value.Length，那么需要截断，末尾需要用三个点。
-            // 截断并补点后的字符串存入 trimmedValue
-            var trimmedValue = value.Length > width + 1
-                ? value[..(width - 2)] + "..."
+            var trimmedValue = value.GetConsoleLength() > width + 1
+                ? value.ConsoleSubString(width - 2) + "..."
                 : value;
 
             sb.Append('│');
             sb.Append(' ').Append(trimmedValue);
-            sb.Append(' ', width + 1 - trimmedValue.Length);
+            sb.Append(' ', width + 1 - trimmedValue.GetConsoleLength());
             if (i == _headers.Length - 1)
             {
                 sb.Append('│');
