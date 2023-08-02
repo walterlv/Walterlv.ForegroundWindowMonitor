@@ -181,7 +181,7 @@ public class ConsoleTableBuilder<T> where T : notnull
     private static int[] CalculateColumnWidths(int tableWidth, IReadOnlyList<ConsoleTableColumnDefinition<T>> headers)
     {
         var calculatedCount = 0;
-        var remainingWidth = tableWidth;
+        var remainingWidth = tableWidth - 1;
         var widths = new int[headers.Count];
         for (var i = 0; i < headers.Count; i++)
         {

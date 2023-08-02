@@ -86,7 +86,7 @@ public static class ConsoleStringExtensions
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int GetConsoleLength(this char c)
     {
-        if (CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.OtherLetter)
+        if (CharUnicodeInfo.GetUnicodeCategory(c) is UnicodeCategory.OtherLetter)
         {
             return 2;
         }
