@@ -1,0 +1,4 @@
+﻿GetForegroundWindow
+GetClassName
+GetWindowText
+GetWindowThreadProcessId
