@@ -40,7 +40,7 @@ public class Win32Window
             fixed (char* ptr = buffer)
             {
                 getter(ptr, bufferLength);
-                return new string(buffer);
+                return new string(buffer, 0, Array.IndexOf(buffer, '\0'));
             }
         }
         finally
