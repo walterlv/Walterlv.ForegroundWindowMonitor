@@ -8,13 +8,14 @@ using static Windows.Win32.PInvoke;
 
 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
-var table = new TableBuilder(Console.WindowWidth, new TableColumnDefinition[]
+var consoleWidth = Console.WindowWidth;
+var table = new ConsoleTableBuilder<Win32Window>(consoleWidth, new ConsoleTableColumnDefinition<Win32Window>[]
 {
-    (8, "time"),
-    (8, "hwnd"),
-    (6, "pid"),
-    (0.5, "title"),
-    (0.5, "description"),
+    (8, "time", _ => $"{DateTime.Now:hh:mm:ss}"),
+    (8, "hwnd", w => $"{w.Handle:X8}"),
+    (6, "pid", w => $"{w.ProcessId}"),
+    (0.5, "title", w => w.Title),
+    (0.5, "description", w => w.ClassName),
 });
 Console.WriteLine(table.BuildHeaderRows());
 
@@ -24,16 +25,17 @@ while (true)
     var current = GetForegroundWindow();
     if (current != last)
     {
+        var newConsoleWidth = Console.WindowWidth;
+        if (newConsoleWidth != consoleWidth)
+        {
+            consoleWidth = newConsoleWidth;
+            table = table.NewTableWidth(newConsoleWidth);
+            Console.WriteLine(table.BuildHeaderRows());
+        }
+
         last = current;
         var w = new Win32Window(current);
-        var rowText = table.BuildRow(w, new List<Func<Win32Window, string>>()
-        {
-            w => $"{DateTime.Now:hh:mm:ss}",
-            w => $"{w.Handle:X8}",
-            w => $"{w.ProcessId}",
-            w => w.Title,
-            w => w.ClassName,
-        });
+        var rowText = table.BuildRow(w);
         Console.WriteLine(rowText);
     }
     await Task.Delay(200).ConfigureAwait(false);
