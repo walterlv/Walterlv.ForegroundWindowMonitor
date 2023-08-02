@@ -80,13 +80,11 @@ public class TableBuilder
         {
             var width = _columnWidths[i];
             var value = valueFormatters[i](@object);
-            var trimmedValue = value.GetConsoleLength() > width + 1
-                ? value.ConsoleSubString(width - 2) + "..."
-                : value;
 
-            sb.Append('│');
-            sb.Append(' ').Append(trimmedValue);
-            sb.Append(' ', width + 1 - trimmedValue.GetConsoleLength());
+            sb.Append('│')
+                .Append(' ')
+                .Append(value.ConsolePadRight(width, ' ', true))
+                .Append(' ');
             if (i == _headers.Length - 1)
             {
                 sb.Append('│');
