@@ -84,28 +84,83 @@ public class ConsoleTableBuilder<T> where T : notnull
     /// 获取一个用来在控制台输出 <typeparamref name="T"/> 类型数据的行字符串。
     /// </summary>
     /// <param name="object">要输出的数据。</param>
+    /// <param name="displayMode">指定当字符串长度超过可显示长度时，应如何显示。</param>
     /// <returns>数据行字符串。</returns>
-    public string BuildRow(T @object)
+    public string BuildRow(T @object, StringDisplayMode displayMode = StringDisplayMode.Truncate)
     {
-        var sb = new StringBuilder();
+        var lines = new List<string[]>();
 
         for (var i = 0; i < _headers.Length; i++)
         {
             var width = _columnWidths[i];
             var value = _headers[i].ColumnValueFormatter(@object);
+            string[] segmentedValues;
 
-            sb.Append('│')
-                .Append(' ')
-                .Append(value.ConsolePadRight(width, ' ', true))
-                .Append(' ');
-            if (i == _headers.Length - 1)
+            switch (displayMode)
             {
-                sb.Append('│');
+                case StringDisplayMode.Truncate:
+                    segmentedValues = new[] { value.ConsolePadRight(width, ' ', true) };
+                    break;
+                case StringDisplayMode.TruncateWithEllipsis:
+                    var truncatedValue = value.Length > width ? value[..(width - 3)] + "..." : value;
+                    segmentedValues = new[] { truncatedValue };
+                    break;
+                case StringDisplayMode.Wrap:
+                    segmentedValues = WrapString(value, width);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+            lines.Add(segmentedValues);
+        }
+
+        var maxLines = lines.Max(x => x.Length);
+        var sb = new StringBuilder();
+        for (var l = 0; l < maxLines; l++)
+        {
+            for (var i = 0; i < _headers.Length; i++)
+            {
+                var width = _columnWidths[i];
+                var lineValue = l < lines[i].Length ? lines[i][l] : new string(' ', _columnWidths[i]);
+                sb.Append('│')
+                    .Append(' ')
+                    .Append(lineValue.ConsolePadRight(width, ' ', true))
+                    .Append(' ');
+                if (i == _headers.Length - 1)
+                {
+                    sb.Append('│');
+                }
+            }
+            if (l < maxLines - 1)
+            {
+                sb.AppendLine();
             }
         }
 
         return sb.ToString();
     }
+
+    private static string[] WrapString(string str, int width)
+    {
+        var lines = new List<string>();
+        int currentIndex = 0;
+
+        while (currentIndex < str.Length)
+        {
+            if (currentIndex + width >= str.Length)
+            {
+                lines.Add(str.Substring(currentIndex));
+            }
+            else
+            {
+                lines.Add(str.Substring(currentIndex, width));
+            }
+            currentIndex += width;
+        }
+
+        return lines.ToArray();
+    }
+
 
     /// <summary>
     /// 获取一个新的 <see cref="ConsoleTableBuilder{T}"/> 实例，该实例的表格宽度为新的指定值。
@@ -169,96 +224,5 @@ public class ConsoleTableBuilder<T> where T : notnull
             }
         }
         return widths;
-    }
-}
-
-/// <summary>
-/// 表示一个控制台表格的列定义。
-/// </summary>
-/// <typeparam name="T">表格中每一行的数据类型。</typeparam>
-public readonly record struct ConsoleTableColumnDefinition<T> where T : notnull
-{
-    public ConsoleTableColumnDefinition(string text, Func<T, string> columnValueFormatter)
-    {
-        Width = text.Length;
-        WidthPercent = 0;
-        Text = text ?? throw new ArgumentNullException(nameof(text));
-        ColumnValueFormatter = columnValueFormatter;
-    }
-
-    public ConsoleTableColumnDefinition(int width, string text, Func<T, string> columnValueFormatter)
-    {
-        if (width <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(width), width, "Width must be greater than 0.");
-        }
-
-        Width = width;
-        WidthPercent = 0;
-        Text = text ?? throw new ArgumentNullException(nameof(text));
-        ColumnValueFormatter = columnValueFormatter;
-    }
-
-    public ConsoleTableColumnDefinition(double widthPercent, string text, Func<T, string> columnValueFormatter)
-    {
-        if (widthPercent <= 0)
-        {
-            throw new ArgumentOutOfRangeException(nameof(widthPercent), widthPercent, "Width percent must be greater than 0.");
-        }
-
-        Width = 0;
-        WidthPercent = widthPercent;
-        Text = text ?? throw new ArgumentNullException(nameof(text));
-        ColumnValueFormatter = columnValueFormatter;
-    }
-
-    /// <summary>
-    /// 获取列的字符显示宽度。
-    /// </summary>
-    public int Width { get; }
-
-    /// <summary>
-    /// 获取列的字符显示宽度百分比。
-    /// </summary>
-    /// <remarks>
-    /// 指定了 <see cref="Width"/> 的列不参与计算百分比，其他列按百分比分剩余宽度。
-    /// <para/>
-    /// 所有列宽度百分比的总和允许大于 100%。当大于时，会压缩每一列按百分比计算的宽度。
-    /// </remarks>
-    public double WidthPercent { get; }
-
-    /// <summary>
-    /// 获取列的标题。
-    /// </summary>
-    public string Text { get; }
-
-    /// <summary>
-    /// 获取列的值格式化器。
-    /// </summary>
-    public Func<T, string> ColumnValueFormatter { get; }
-
-    public static implicit operator ConsoleTableColumnDefinition<T>(string headerText)
-    {
-        return new ConsoleTableColumnDefinition<T>(headerText, v => v.ToString()!);
-    }
-
-    public static implicit operator ConsoleTableColumnDefinition<T>((int Width, string Text) header)
-    {
-        return new ConsoleTableColumnDefinition<T>(header.Width, header.Text, v => v.ToString()!);
-    }
-
-    public static implicit operator ConsoleTableColumnDefinition<T>((int Width, string Text, Func<T, string> ColumnValueFormatter) header)
-    {
-        return new ConsoleTableColumnDefinition<T>(header.Width, header.Text, header.ColumnValueFormatter);
-    }
-
-    public static implicit operator ConsoleTableColumnDefinition<T>((double WidthPercent, string Text) header)
-    {
-        return new ConsoleTableColumnDefinition<T>(header.WidthPercent, header.Text, v => v.ToString()!);
-    }
-
-    public static implicit operator ConsoleTableColumnDefinition<T>((double WidthPercent, string Text, Func<T, string> ColumnValueFormatter) header)
-    {
-        return new ConsoleTableColumnDefinition<T>(header.WidthPercent, header.Text, header.ColumnValueFormatter);
     }
 }

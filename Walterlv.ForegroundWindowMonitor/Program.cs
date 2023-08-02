@@ -21,7 +21,7 @@ var table = new ConsoleTableBuilder<Win32Window>(consoleWidth, new ConsoleTableC
 Console.WriteLine(table.BuildHeaderRows());
 
 HWND last = default;
-while (true)
+for (var i = 1; i < int.MaxValue; i++)
 {
     var current = GetForegroundWindow();
     if (current != last)
@@ -36,8 +36,20 @@ while (true)
 
         last = current;
         var w = new Win32Window(current);
-        var rowText = table.BuildRow(w);
+        var rowText = table.BuildRow(w, StringDisplayMode.Wrap);
+
         Console.WriteLine(rowText);
+
+        //if (i % 2 is 0)
+        //{
+        //    Console.BackgroundColor = ConsoleColor.DarkGray;
+        //    Console.ForegroundColor = ConsoleColor.Black;
+        //}
+        //else
+        //{
+        //    Console.BackgroundColor = ConsoleColor.Black;
+        //    Console.ForegroundColor = ConsoleColor.White;
+        //}
     }
     await Task.Delay(200).ConfigureAwait(false);
 }
