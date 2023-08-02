@@ -15,7 +15,8 @@ var table = new ConsoleTableBuilder<Win32Window>(consoleWidth, new ConsoleTableC
     (8, "hwnd", w => $"{w.Handle:X8}"),
     (6, "pid", w => $"{w.ProcessId}"),
     (0.5, "title", w => w.Title),
-    (0.5, "description", w => w.ClassName),
+    (0.25, "class name", w => w.ClassName),
+    (0.25, "process name", w => $"{w.ProcessName}"),
 });
 Console.WriteLine(table.BuildHeaderRows());
 

@@ -1,4 +1,5 @@
 ﻿using System.Buffers;
+using System.Diagnostics;
 
 using Windows.Win32.Foundation;
 
@@ -10,6 +11,7 @@ public class Win32Window
     private readonly HWND _hWnd;
     private string? _className;
     private string? _title;
+    private string? _processName;
     private uint _pid;
 
     internal Win32Window(nint handle)
@@ -24,6 +26,8 @@ public class Win32Window
     public string Title => _title ??= CallWin32ToGetPWSTR(512, (p, l) => GetWindowText(_hWnd, p, l));
 
     public uint ProcessId => _pid is 0 ? (_pid = GetProcessIdCore()) : _pid;
+
+    public string ProcessName => _processName ??= Process.GetProcessById((int)ProcessId).ProcessName;
 
     private unsafe uint GetProcessIdCore()
     {

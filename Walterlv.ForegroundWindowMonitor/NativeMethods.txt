@@ -1,4 +1,5 @@
-﻿GetForegroundWindow
-GetClassName
+﻿GetClassName
+GetForegroundWindow
+GetProcessImageFileName
 GetWindowText
 GetWindowThreadProcessId
